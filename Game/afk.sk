@@ -1,0 +1,20 @@
+# afk
+every 10 minutes:
+    loop all players:
+        if loop-player is in region "afk":
+            chance of 60%:
+                execute console command "crates key give %loop-player% afkkey 2"
+            chance of 5%:
+                execute console command "crates key give %loop-player% casinokey 1"
+            chance of 35%: 
+                execute console command "crates key give %loop-player% buyer 1"
+            chance of 1%: 
+                execute console command "crates key give %loop-player% gearkey 1"
+
+on region enter:
+    if event-region is "afk" parsed as region:
+        send title "&a&lEntering AFK Area" to player
+
+on region exit:
+    if event-region is "afk" parsed as region:
+        Send title "&c&lLeaving AFK Area" to player

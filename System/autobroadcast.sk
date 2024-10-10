@@ -1,0 +1,16 @@
+Every 5 minutes:
+		broadcast "&8&m-------------------------------------"
+		broadcast "&7[&aBoxServer&7] &7&lMake Sure To Use &9/Discord "
+		broadcast "&8&m-------------------------------------"
+		wait 6 minutes
+		broadcast "&8&m-------------------------------------"
+		broadcast "&7[&aBoxServer&7] &7&lEvery 15 Minutes you get an afk key"
+		broadcast "&8&m-------------------------------------"
+		wait 7 minutes
+		broadcast "&8&m-------------------------------------"
+		broadcast "&7[&aBoxServer&7] &7&lMake sure to advertise the server"
+		broadcast "&8&m-------------------------------------"
+		wait 8 minutes
+		broadcast "&8&m-------------------------------------"
+		broadcast "&7[&aBoxServer&7] &7&lTo buy ranks do /buy"
+		broadcast "&8&m-------------------------------------"

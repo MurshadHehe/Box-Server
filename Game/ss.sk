@@ -1,0 +1,54 @@
+# Command to set the SS room to the player's current location
+command /setSSROOM:
+    permission: ss.setSS
+    trigger:
+        set {ssROOM} to location of block at location of player
+        send "&7[&9&lBoxServer&7] &7SS room has been set to &9%{ssROOM}%" 
+
+# Command to initiate a screenshare (SS) with another player
+command /ss [<player>]:
+    permission: ss.screanshare
+    trigger:
+        # Check if a player argument is provided
+        if arg-1 isn't set:
+            send "&7[&9&lBoxServer&7] &7You must include a player to SS, like &9/ss <player>&7!"
+            stop
+        else:
+            # Teleport both the player and the target to the SS room
+            teleport arg-1 to {ssROOM}
+            teleport player to {ssROOM}
+            send "&7[&9&lBoxServer&7] &7You have been teleported to the SS room with &9%arg-1%&7 in order to SS them." to player
+            send "&7[&9&lBoxServer&7] &7You have been sent to the SS room by &9%player%&7. DO NOT LEAVE! Please join the screenshare VC in &9/discord" to arg-1
+            broadcast "&7[&9&lBoxServer&7] &9%arg-1% &7is getting screenshared by &9%player%" 
+            set {beingSS::%arg-1's uuid%} to true  # Mark the player as being SSed
+
+# Command to stop the screenshare session
+command /stopss [<player>]:
+    permission: ss.stopss
+    trigger:
+        # Check if a player argument is provided
+        if arg-1 isn't set:
+            send "&7[&9&lBoxServer&7] &cPlease specify a player to stop the SS session, e.g., /stopss <player>"
+            stop
+        else:
+            # Teleport the player back to spawn
+            teleport arg-1 to {spawn}
+            send "&7[&9&lBoxServer&7] &aYou are no longer being SSed!" to arg-1
+            delete {beingSS::%arg-1's uuid%}  # Remove the SS mark
+
+# Block commands from players who are being SSed (except for /discord)
+on command:
+    if {beingSS::%player's uuid%} is set:
+        if event-command is "/discord":
+            stop  # Allow the player to use the /discord command
+        else:
+            cancel event  # Cancel any other command
+            send "&7[&9&lBoxServer&7] &cYou may not use commands while being SSed!" to player
+
+# Handle players logging out while being SSed
+on disconnect:
+    if {beingSS::%player's uuid%} is set:
+        make console execute command "tempbanip %player% 13d &9&lYou logged out while being SSed!"
+        broadcast "&7[&9&lBoxServer&7] &9%player% &4logged out while being SSed."
+        delete {beingSS::%player's uuid%}  # Remove SS mark when they disconnect
+

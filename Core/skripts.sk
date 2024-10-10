@@ -1,0 +1,366 @@
+# clearchat
+command /clearchat:
+    description: Clears chat for all the players
+    permission: server.clearchat
+    trigger:
+       loop 3000 times:
+        broadcast "&6Chat has been cleared by %player%"
+
+# toggle pings
+options:
+  ping-sound: "BLOCK_NOTE_BLOCK_PLING"  
+
+command /toggleping:
+    description: "Toggle ping notifications on or off."
+    trigger:
+        if {ping.%player%} is true:
+            delete {ping.%player%}
+            send "&cPings are disabled!" to player
+        else:
+            set {ping.%player%} to true
+            send "&aPings are enabled." to player
+
+on chat:
+    if message contains "@%player%":
+        if {ping.%player%} is true:
+            play sound {@ping-sound} with volume 1 and pitch 1 to player
+
+
+# discord link command
+command /discord:
+    description: "Get the server's Discord link."
+    trigger:
+        send "&7Join our Discord server: &ahttps://discord.gg/discord" to player
+
+
+#Alert command
+command /boxalert <text>:
+    description: "Send a colored alert message to all players."
+    permission: alert.use
+    permission message: "No Permissions"
+    trigger:
+        # Get the alert message from the command argument
+        set {_message} to arg-1
+        
+        wait 5 seconds
+        # Send the message to all players in chat with support for color codes
+        broadcast "&8[&4Alert&8] %{_message}%"
+
+
+
+options:
+    prefix: &b&lBoxServer
+
+command /createwarp [<text>] [<text>]:
+    permission: skript.createWarp.use
+    trigger:
+        if arg-1 is set:
+            if arg-2 is set:
+                if {warp::%arg-1%} isn't set:
+                    set {warp::%arg-1%} to location of block at location of player
+                    set {warpPermission::%arg-1%} to arg-2 
+                    send "{@prefix} &aWarp &6%arg-1% &awas set to &6%{warp::%arg-1%}%&a!"
+                    send "{@prefix} &aPermission for warp &6%arg-1% &awas set to: &6%arg-2%&a"
+                else:
+                    send "{@prefix} &cThis warp is already defined, if you want to remove this warp use /deletewarp <warp name>!"
+            else:
+                send "{@prefix} &c/createwarp <warp name> <permission>"
+        else:
+            send "{@prefix} &c/createwarp <warp name> <permission>"
+
+command /deletewarp [<text>]:
+    aliases: /delwarp
+    permission: skript.delwarp.use
+    trigger:
+        if arg-1 isn't set:
+            send "{@prefix} &c/delwarp <warpname>"
+        else if {warp::%arg-1%} isn't set:
+            send "{@prefix} &cWarp &4%arg-1%&c Isn't a valid warp!"
+        else:
+            delete {warp::%arg-1%}
+            delete {warpPermission::%arg-1%}
+            send "{@prefix} &aWarp &6%arg-1%&a was deleted!"
+            send "{@prefix} &aWarp permission &6%{warpPermission::%arg-1%}%&a was deleted!"
+
+command /warp [<text>]:
+    trigger:
+        if arg-1 isn't set:
+            send "{@prefix} &c/warp <warp name>"
+        else if {warp::%arg-1%} isn't set:
+            send "{@prefix} &cWarp &4%arg-1%&c Isn't a valid warp!"
+        else:
+            if player has permission "%{warpPermission::%arg-1%}%":
+                set {warping.%player%} to true
+                send "{@prefix} &7Warping to &8%arg-1%&7 warp in 3 seconds!"
+                loop 1 time:
+                    if {warping.%player%} is true:
+                        wait 3 seconds
+                if {warping.%player%} is true:
+                    teleport player to {warp::%arg-1%}
+                    send "{@prefix} &aTeleported you to &6%arg-1%&a!"
+                    set {warping.%player%} to false
+            else:
+                send "{@prefix} &cYou dont have access to this warp!"
+
+on player move:
+    if {warping.%player%} is true:
+        set {warping.%player%} to false
+        send "&cYou won't be warped anymore!"
+
+on tab complete of "/warp":
+    set tab completions for position 1 to "vip", "mvp", "emerald", "diamond", "custom", "media"
+
+on tab complete of "/delwarp":
+    set tab completions for position 1 to "vip", "mvp", "emerald", "diamond", "custom", "media"
+
+
+# broadcast
+command /broadcast <text>:
+    description: "Send a colored alert message to all players."
+    permission: alert.use
+    permission message: "No Permissions"
+    trigger:
+        # Get the alert message from the command argument
+        set {_message} to arg-1
+        
+        # Check if the message contains color codes
+        if {_message} contains "&":
+            # Send the message with the existing color codes
+            broadcast "&7[&3Broadcast&7] %{_message}%"
+        else:
+            # Default to color &9 if no color codes are found
+            broadcast "&7[&3Broadcast&7] &9%{_message}%"
+
+
+# keyall
+command /keyall <text>:
+    permission: Keyall.use
+    trigger:
+        if arg-1 is "small":
+            execute console command "/crates key give * Gear 1"
+            execute console command "/crates key give * hamburger 2"
+            execute console command "/crates key give * offhand 1"
+            execute console command "/crates key give * casino 2"
+        if arg-1 is "medium":
+            execute console command "/crates key give * gear 1"
+            execute console command "/crates key give * hamburger 1"
+            execute console command "/crates key give * casino 1"
+        if arg-1 is "large":
+            execute console command "/goldencrates givekey * gear 2"
+            execute console command "/goldencrates givekey * hamburger 2"
+            execute console command "/goldencrates givekey * offhand 2"
+            execute console command "/goldencrates givekey * casino 3"
+
+# mute chat
+command /mutechat:
+    permission: chat.mute
+    permission message: &cNo Permission
+    trigger:
+        if {Globalchat} is not set:
+            set {Globalchat} to true
+            broadcast "&cChat has been muted"
+        else:
+            send "&cChat is already muted." to player
+
+# Command to unmute the chat
+command /unmutechat:
+    permission: chat.mute
+    permission message: &cNo Permission"
+    trigger:
+        if {Globalchat} is set:
+            clear {Globalchat}
+            broadcast "&aChat has been Unmuted"
+        else:
+            send "&cChat is not muted." to player
+
+# Event handler for chat messages
+on chat:
+    if {Globalchat} is set:
+        if player has permission "chat.mute.bypass":
+            stop trigger
+        else:
+            cancel event
+            send "&cChat is currently muted." to player
+
+
+# commandspy 
+command /commandspy [<player>]:
+    aliases: /commands, /cspy, /cmd
+    permission: commandspy.use
+    permission message: &cNo Permission
+    trigger:
+        if arg 1 is set:
+            if {cs::%uuid of arg 1%} is set:
+                clear {cs::%uuid of arg 1%}
+                send "&cCommand spy has been disabled for %arg 1%."
+                send "&cYour command spy has been disabled." to arg 1
+            else:
+                set {cs::%uuid of arg 1%} to true
+                send "&aYour command spy has been enabled." to arg 1
+                send "&aCommand spy has been enabled for %arg 1%."
+        else:
+            if {cs::%uuid of player%} is set:
+                clear {cs::%uuid of player%}
+                send "&cYour command spy has been disabled."
+            else:
+                set {cs::%uuid of player%} to true
+                send "&aYour command spy has been enabled."
+on command:
+    if sender is a player:
+        loop all players:
+            if {cs::%uuid of loop-player%} is set:
+                if "%player%" is not "%loop-player%":
+                    send "&4&lCMDSPY &8| &4%player% &7> &6executed the command  &a/%complete command%" to loop-player
+
+on quit:
+    delete {cs::%uuid of player%}
+
+# spawn 
+
+on join:
+    set join message to "&a+ &7%player%"
+    play sound "entity.player.levelup" with volume 3 and pitch 1 to player
+    
+on quit: 
+    set quit message to "&c+ &7%player%"
+
+
+on death:
+    # Teleport player to spawn upon respawn
+    if {spawn} is set:
+        wait 1 tick # Small delay to ensure player is fully respawned
+        teleport player to {spawn}
+    else:
+        send "{@prefix} &cSpawn is not set, please contact a server administrator to use &e/setspawn&c." to player
+
+options:
+    prefix: &8[&e&lSpawn&8]&f
+    spawnCommandCooldown: 3 seconds
+    setSpawnCommandPermission: commands.setspawn
+    noPermissionMessage: &cYou do not have permission to use this command.
+
+command /spawn:
+    cooldown: {@spawnCommandCooldown}
+    description: Teleport to the spawn point.
+    usage: /spawn
+    trigger:
+        if {spawn} is set:
+            send "{@prefix} &cTeleporting to spawn in 5 seconds" to player
+            wait 1 second
+            send "{@prefix} &cTeleporting to spawn in 4 seconds" to player
+            wait 1 second
+            send "{@prefix} &cTeleporting to spawn in 3 seconds" to player
+            wait 1 second
+            send "{@prefix} &cTeleporting to spawn in 2 seconds" to player
+            wait 1 second
+            send "{@prefix} &cTeleporting to spawn in 1 second" to player
+            wait 1 second
+            teleport player to {spawn}
+            send "&aTeleported to spawn" to player
+        else:
+            send "{@prefix} &cSpawn is not set, please contact a server administrator to use &e/setspawn&c." to player
+
+command /setspawn:
+    permission: {@setSpawnCommandPermission}
+    permission message: {@noPermissionMessage}
+    description: Set the spawn point.
+    usage: /setspawn
+    trigger:
+        set {spawn} to location of player
+        send "{@prefix} &aLocation for &eSpawn&a has been set to your current location." to player
+
+
+
+# offhand (bedrocks and y)
+
+options:
+	messages: true #set to false if you don't want a message to send when command is executed
+
+command offhand:
+	trigger:
+		if player's offhand tool is air:
+			if player's tool is air:
+				if {@messages} is true:
+					send "&cPlease hold something!" to player
+			else:
+				set player's offhand tool to player's tool
+				clear player's tool
+				if {@messages} is true:
+					send "&aSuccessfully set your offhand to &e%player's offhand tool%&a!" to player
+		else:
+			if player's tool is air:
+				set {offhand::%player's uuid%} to player's offhand tool
+				set player's offhand tool to player's tool
+				set player's tool to {offhand::%player's uuid%}
+				if {@messages} is true:
+					send "&aSuccessfully removed &e%{offhand::%player's uuid%}% &afrom your offhand!" to player
+				delete {offhand::%player's uuid%}
+			else:
+				set {offhand::%player's uuid%} to player's offhand tool
+				if {@messages} is true:
+					send "&aSuccessfully replaced &e%{offhand::%player's uuid%}% &awith &e%player's tool%&a!" to player
+				set player's offhand tool to player's tool
+				set player's tool to {offhand::%player's uuid%}
+				delete {offhand::%player's uuid%}
+
+
+# vanish
+	
+command /vanish [<offline player>]:
+	permission: admin.a
+	permission message: &cYou are not of the rank to use this command!
+	aliases: /v
+	executable by: player
+	trigger:
+		if arg 1 is not set:
+			if {vanish.%player%} is not set:
+				hide the player from all players
+				send "&aYou are invisible."
+				set {vanish.%player%} to true
+				loop all players:
+					if loop-player has permission "admin.a":
+						send "&f[VANISH] &a%player% is now in vanish." to loop-player
+			else:
+				reveal the player from all players
+				send "&cYou are no longer invisible."
+				delete {vanish.%player%}
+				loop all players:
+					if loop-player has permission "admin.a":
+						send "&f[VANISH] &c%player% is no longer in vanish." to loop-player
+		if arg 1 is set:
+			if {vanish.%arg 1%} is not set:
+				hide the arg 1 from all players
+				send "&aYou are invisible." to arg 1
+				send "&f[VANISH] &c%arg 1% is now in vanish." to player
+				set {vanish.%arg 1%} to true
+				loop all players:
+					if loop-player has permission "admin.a":
+						send "&f[VANISH] &c%arg 1% is now in vanish." to loop-player
+			else:
+				reveal the arg 1 from all players
+				send "&cYou are no longer invisible." to arg 1
+				send "&f[VANISH] &c%arg 1% is no longer in vanish." to player
+				delete {vanish.%arg 1%}
+				loop all players:
+					if loop-player has permission "admin.a":
+						send "&f[VANISH] &c%arg 1% is no longer in vanish." to loop-player
+
+
+on quit:	
+	if {vanish.%player%} is set:
+		delete {vanish.%player%}
+
+
+
+# CLEARLAG
+
+every 25 minutes:
+  broadcast "&4&lClearLag Alert! &f&l>> &fDropped entities will be cleared in 30 seconds!"
+  wait 25 seconds
+  broadcast "&4&lClearLag Alert! &f&l>> &fDropped entities will be cleared in 5 seconds!"
+  wait 5 seconds
+  loop all entities:
+    loop-entity is a dropped item:
+      clear loop-entity
+  broadcast "&a&lClearLag &f&l>> &rDropped items cleared!"
+

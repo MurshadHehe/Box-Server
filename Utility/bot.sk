@@ -1,0 +1,178 @@
+# Bot Setup
+define new bot named "Box Server":
+    token: ""  # Add your bot token here
+    intents: default intents
+    policy: all
+    auto reconnect: true
+    compression: none
+
+on ready:
+    set {_linked} to new slash command named "linked" with description "Check for linked people."
+    add new required user option named "user" with description "The user you want to check!" to options of {_linked}
+    set {_unlink} to new slash command named "unlink" with description "Unlink a user."
+    add new required user option named "user" with description "The user you want to unlink!" to options of {_unlink}
+    set {_link} to new slash command named "link" with description "Link your Discord account to Minecraft!"
+    add new required string option named "code" with description "Enter the code!" to options of {_link}
+    set {_info} to new slash command named "info" with description "Server Info!"
+    update {_linked} and {_unlink} and {_link} and {_info} globally in event-bot
+
+# Slash Commands
+on slash command:
+    set {_name} to event-string
+    if {_name} = "linked":
+        event-member has discord permission administrator
+        set {_arg} to argument "user" as user
+        if {linkedGeneral::%discord id of {_arg}%::*} is set:
+            loop indexes of {linkedGeneral::%discord id of {_arg}%::*}:
+                reply with hidden "The Discord user **%{_arg}%** is linked to the Minecraft account **%loop-value parsed as offlineplayer%** (UUID: **%loop-value%**)"
+        else:
+            reply with hidden "The Discord user **%{_arg}%** is not linked to Minecraft."
+
+    if {_name} = "unlink":
+        event-member has discord permission administrator
+        set {_arg} to argument "user" as user
+        if {linkedGeneral::%discord id of {_arg}%::*} is set:
+            loop indexes of {linkedGeneral::%discord id of {_arg}%::*}:
+                set {_player} to (loop-value parsed as offlineplayer)
+                delete {linkedGeneral::%discord id of {_arg}%::*}
+                delete {minecraftLinked::%loop-value%::*}
+                reply with hidden "The Discord user **%{_arg}%** has been unlinked from the Minecraft account **%{_player}%** (UUID: **%loop-value%**)"
+        else:
+            reply with hidden "The Discord user **%{_arg}%** is not linked to Minecraft."
+
+    if {_name} = "link":
+        set {_arg} to argument "code" as string
+        if {linkedGeneral::%discord id of event-member%::*} is true:
+            reply with hidden "You have already linked your Discord account to a Minecraft account"
+            stop
+        if {code::%{_arg}%} is not set:
+            reply with hidden "Invalid code"
+            stop
+        reply with hidden "✅ You are now linked to %{code::%{_arg}%}%! 🎉"
+        set {minecraftLinked::%{code::%{_arg}%}'s uuid%::%discord id of event-member%} to true
+        set ({linkedGeneral::%discord id of event-member%::%{code::%{_arg}%}'s uuid%}) to true
+        make console execute command "/crates key give %{code::%{_arg}%}% gear 1"
+        delete {code::%{_arg}%}
+
+    if {_name} = "info":
+        make embed:
+            set embed color of embed to red
+            set title of embed to "**__SERVER INFO__**"
+            set description of embed to "STORE: **store.boxserver.com**%nl%IP: **play.boxserver.com**%nl%Owner: **Murshad**"
+        reply with last embed
+
+# Command to Link Discord Account to Minecraft Account
+command link:
+    trigger:
+        if {minecraftLinked::%player's uuid%::*} is true:
+            send "&aYou cannot link more than once!" to player
+        else:
+            set {_code} to "%random integer between 11111 and 99999%"
+            set {code::%{_code}%} to player
+            send "&aYour link code is &b%{_code}%&a. Run the Discord command &b/link %{_code}%&a to link your account. This code will be deleted in &c1&a minute."
+            wait 1 minute
+            delete {code::%{_code}%}
+
+# Command to Reset Linkings
+command /resetlinking:
+    permission: command.resetlink
+    permission message: &cYou cannot perform this command!
+    trigger:
+        send "&aRemoved all linked accounts."
+        set {linkedGeneral::*} to {linkedGeneral::*}
+        set {minecraftLinked::*} to {minecraftLinked::*}
+
+# Function for Booster Rewards
+function boosterKeys():
+    set {_role} to guild boost role of guild with id ""  # Add ID here
+    make embed:
+        set embed color of embed to red
+        set title of embed to "**__BOOSTER REWARDS__**"
+        set footer of embed to "Happens every 2 days"
+        set description of embed to "You have been rewarded with a **GEAR and 2 CASINO KEYS**!%nl%%nl%Claim your **keys** in-game using the command:%nl%**| /claimbooster |**"
+        post last embed to text channel with id ""  # Add channel ID here
+    post mention tag of {_role} to text channel with id ""  # Add ID here
+    loop indexes of {linkedGeneral::*}:
+        set {_m} to member with id loop-value from guild with id ""  # Add ID here
+        if {_m} is a member:
+            if {_m} has discord role {_role}:
+                loop indexes of {linkedGeneral::%loop-value%::*}:
+                    if {BoosterClaim::%loop-value-2%} is set:
+                        add 1 to {BoosterClaim::%loop-value-2%}
+                    else:
+                        set {BoosterClaim::%loop-value-2%} to 1
+
+# Command to Claim Booster Rewards
+command /claimbooster:
+    trigger:
+        if {BoosterClaim::%player's uuid%} is set:
+            console command "/crates key give %player% gear %{BoosterClaim::%player's uuid%}%"
+            console command "/crates key give %player% casino %{BoosterClaim::%player's uuid%}+1%"
+            send "&eYou have claimed your booster rewards!"
+            delete {BoosterClaim::%player's uuid%}
+        else:
+            send "&cYou are not boosting the server, or you don't have any keys to claim!" to player
+
+# Every 48 hours to run boosterKeys function
+every {@cooldown} hours:
+    set {boosterKey} to now
+
+# Force Booster Command
+command /forcebooster:
+    permission: forceboost
+    trigger:
+        boosterKeys()
+
+# others
+
+    set {_message} to message
+    replace all "@" in {_message} with ""
+    post "%player% » %uncoloured {_message}%" to text channel with id "YOUR_CHANNEL_ID" # Replace with actual channel ID
+
+on join:
+    post "%player% has joined" to text channel with id "YOUR_CHANNEL_ID" # Replace with actual channel ID
+
+on quit:
+    post "%player% » has left" to text channel with id "YOUR_CHANNEL_ID" # Replace with actual channel ID
+
+command /Tebexannounce [<text>] [<text>] [<text>]:
+    trigger:
+        command sender is console:
+            set {_purchase::ign} to arg-1
+            set {_purchase::price} to arg-3
+            set {_purchase::product} to arg-2
+            make embed:
+                set title of embed to "NEW PURCHASE!"
+                set description of embed to "%{_purchase::ign}% has just purchased %{_purchase::product}%!%nl%%nl%**Price:**%nl%%{_purchase::price}%"
+                set footer of embed to "Check out our store at store.boxserver.com!"
+                set thumbnail of embed to "THUMBNAIL_URL" # Replace with actual thumbnail URL
+            post last embed to channel with id "YOUR_CHANNEL_ID" # Replace with actual channel ID
+
+on first join:
+    set {reports::%player's uuid%} to 0
+
+command /report [<player>] [<text>]:
+    permission: server.report
+    cooldown: 3 minutes
+    cooldown message: "&cPlease wait %remaining time% before using this command again, this is to prevent spam."
+    trigger:
+        if arg-1 isn't set:
+            send "&7Please select a user to report."
+        if arg-1 is set:
+            if arg-2 is not set:
+                send "&7Please provide a reason to report the player."
+            else:
+                make embed:
+                    set title of embed to "New Player Report"
+                    set description of embed to "**%player%** has reported **%arg-1%** for %arg-2%%nl%- %arg-1%'s Ping: %arg-1's ping%%nl%- %arg-1%'s Past Report(s) Count: %{reports::%arg-1's uuid%}%%nl%- Server TPS: %tps from the last 1 minute%"
+                    set embed color of embed to blue
+                    set thumbnail of embed to "THUMBNAIL_URL" # Replace with actual thumbnail URL
+                post embed to channel with id "YOUR_CHANNEL_ID" # Replace with actual channel ID
+                send " " to all players where [input has permission "server.report.see"]
+                send "&a&lPlayer Report" to all players where [input has permission "server.report.see"]
+                send "| &e%player%&7 has reported %arg-1% for &a%arg-2%" to all players where [input has permission "server.report.see"]
+                send "| &e%arg-1%&7's ping: &a%arg-1's ping%" to all players where [input has permission "server.report.see"]
+                send "| &eServer TPS: %tps from the last 1 minute%" to all players where [input has permission "server.report.see"]
+                send "| &e%arg-1%&7's location: &a%arg-1's location%" to all players where [input has permission "server.report.see"]
+                send " " to all players where [input has permission "server.report.see"]
+                add 1 to {reports::%arg-1's uuid%}

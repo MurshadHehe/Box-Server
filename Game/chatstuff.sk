@@ -1,0 +1,74 @@
+on chat:
+	if {staff.auth.firstLoginMode::%player's uuid%} or {staff.auth.loginMode::%player's uuid%} is true:
+		stop
+	add "&8» &a%message% &8(&7%now%&8)" to {logs.chat::%player's uuid%::*}
+
+on tab complete of "/chatlogs":
+	set tab completions for position 1 to all players
+
+command /chatlogs [<offline player>]:
+	usage: &c&lERROR &8| &7Usage: /chatlogs (Player)
+	permission: logs.chatlogs
+	permission message: &c&lERROR &8| &7You don't have permission to this command.
+	trigger:
+		if arg-1 is set:
+			send "&a&lLOGS &8| &a%arg-1%'s &7chat logs:" to player
+			loop {logs.chat::%arg-1's uuid%::*}:
+				send "%loop-value%" to player
+		else:
+			send "&c&lERROR &8| &7Usage: /chatlogs (Player)" to player
+
+on chat:
+    replace all "fuck", "fucking" , "faggot", "twat", "piss",  "slut", "pussy", "anal", "dick", "cum", "cock", "slut", "wanker", "nigga", "niggas", "cunt", "niggers", "ngga", "ngger", "n1gger", "n1gg3r", "n1iggers", "n1gg3rs", "kys", "KYS", "penis", "niggwe"  or "nigger", "niger", "nlgger", "nlgga", "n-i-g-g-e-r", "n-i-g-g-a", "niqger", "niqga", "ky s", "k ys", "k ys" in message with "&8&l[&a&l&nCensored&8&l] &r"
+    replace all "fu ck", "fuc k", "f u c k", "f uck", "f uc k", "k y s", "p e n i s", "n i g w g w e" or "f u ck" in message with "&8&l[&a&l&nCensored&8&l] &r"
+    replace all "sh it", "s h i t", "shi t", "s h it", "s hit", "sh i t", or "shite" in message with "&8&l[&a&l&nCensored&8&l] &r"
+    replace all "b i t c h", "bitc h", "bit ch", "b itch", "bit c h", "bit c h", or "b i t ch" In message with "&8&l[&a&l&nCensored&8&l] &r"
+    replace all  "cu m", "c u m", or "c um" in message with "&8&l[&a&l&nCensored&8&l] &r"
+
+
+
+on chat:
+    if {chatcooldown.%player%} is true:
+        cancel event
+        send "&cYou need to wait 2 seconds after each message!"
+    else:
+        set {chatcooldown.%player%} to true
+        wait 2 seconds
+        set {chatcooldown.%player%} to false
+
+command /clearchatdelay [<player>]:
+    permission: permission
+    permission message: &cYou do not have access to this command!
+    trigger:
+        delete {chatcooldown.%arg-1%}
+
+on leave:
+ delete {chatcooldown.%player%}
+ 
+
+
+on chat:
+    if message starts with "%%":
+        if player has permission "chat.staff":
+            cancel event
+            set {_m} to message
+            replace all "%%" in {_m} with ""
+            loop all players:
+                if loop-player has permission "chat.staff":
+                    send "&a&lSTAFFCHAT &7| &2%player% &7> &f%{_m}%" to loop-player
+
+
+options:
+    prefix: &b&lBoxServer &7>>
+
+command /advertisemessage:
+    aliases: /admsg, /admessage, /ad
+    trigger:
+        send ""
+        send "{@prefix} <suggest command:/ad BoxServer BOXPVP | QUICKDROP | UNIQUE | SEASON 5> &8(&c&lCLICK-HERE&8) &7to copy the [DEFAULT] Ad message."
+        send "{@prefix} <suggest command:/ad BoxServer &dBOXPVP &8| &aQUICKDROP &8| &9UNIQUE &8| &3SEASON 1> &8(&c&lCLICK-HERE&8) &7to copy the &a[VIP]&7 Ad message."
+        send "{@prefix} <suggest command:/ad BoxServer &8(&d&lCLICK HERE&8) &8(&5&LBOXPVP&8) &8(&3&lSEASON 1 RELEASED8)> &8(&c&lCLICK-HERE&8) &7to copy the &6[LEGAND]&7 Ad message."
+        send "{@prefix} <suggest command:/ad BoxServer &8(&d&lCLICK HERE&8) &8(&5&lBOXPVP&8) &8(&3&lSEASON 1 RELEASED&8)> &8(&c&lCLICK-HERE&8) &7to copy the &3[PATRON]&7 Ad message."
+        send ""
+
+

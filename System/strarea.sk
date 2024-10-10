@@ -1,0 +1,7 @@
+on entering of region "strengtharea":
+    apply strength 2 to player
+    send title "&7[&a&lBoxServer]" with subtitle "&b&lYou have entered the strength area" to player for 10 ticks
+on exiting of region "str":
+    remove strength from player
+    send title "&7[&a&lBoxServer]" with subtitle "&b&lYou have left the strength area" to player for 10 ticks
+

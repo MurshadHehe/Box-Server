@@ -1,0 +1,73 @@
+on command "/pl":
+     cancel event
+     send "&cNo Permissions"
+on command "/plugins":
+     cancel event
+     send "&cNo Permissions"
+on command "/bukkit:plugins":
+     cancel event
+     send "&cNo Permissions"
+on command "/minecraft:me":
+     cancel event
+     send "&cNo Permissions"
+on command "/teammsg":
+     cancel event
+     send "&cNo Permissions"
+on command "/te":
+     cancel event
+     send "&cNo Permissions"
+on command "/minecraft:te":
+     cancel event
+     send "&cNo Permissions"
+on command "/minecraft:teammsg":
+     cancel event
+     send "&cNo Permissions"
+on command "/minecraft:msg":
+     cancel event
+     send "&cNo Permissions"
+on command "/minecraft:tell":
+     cancel event
+     send "&cNo Permissions"
+on command "/minecraft:w":
+     cancel event
+     send "&cNo Permissions"
+on command "/w":
+     cancel event
+     send "&cNo Permissions"
+on command "/?":
+     cancel event
+     send "&cNo Permissions"
+on command "/bukkit:?":
+     cancel event
+     send "&cNo Permissions"
+on command "/ver":
+     cancel event
+     send "&cNo Permissions"
+on command "/bukkit:ver":
+     cancel event
+     send "&cNo Permissions"
+on command "/version":
+     cancel event
+     send "&cNo Permissions"
+on command "/bukkit:version":
+     cancel event
+     send "&cNo Permissions"
+on command "/help":
+     cancel event
+     send "&cNo Permissions"
+on command "/bukkit:help":
+     cancel event
+     send "&cNo Permissions"
+on command "/bukkit:about":
+     cancel event
+     send "&cNo Permissions"
+on command "/bukkit:pl":
+     cancel event
+     send "&cNo Permissions"
+on command "":
+     cancel event
+     send "&cNo Permissions"
+
+
+on execute command "/op" or "/deop" or "/ban" or "/unban" or "/banip" or "/unbanip" or "/pardon" or "/pardonip":
+    cancel event
